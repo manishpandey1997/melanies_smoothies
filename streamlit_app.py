@@ -33,6 +33,28 @@ ingredients_list = st.multiselect(
 
 if ingredients_list:
 
+    # Get SmoothieFroot data for each selected fruit
+    sf_df = pd.DataFrame()
+
+    for fruit_chosen in ingredients_list:
+
+        smoothiefroot_response = requests.get(
+            "https://my.smoothiefroot.com/api/fruit/" + fruit_chosen.lower()
+        )
+
+        smoothiefroot_response_json = smoothiefroot_response.json()
+
+        fruit_df = pd.DataFrame([smoothiefroot_response_json])
+
+        sf_df = pd.concat(
+            [sf_df, fruit_df],
+            ignore_index=True
+        )
+
+    # Display nutrition data
+    st.dataframe(sf_df, use_container_width=True)
+
+    # Create ingredients string
     ingredients_string = ''
 
     for fruit_chosen in ingredients_list:
@@ -51,17 +73,3 @@ if ingredients_list:
             "Your Smoothie is ordered!",
             icon="✅"
         )
-
-# Call the SmoothieFroot API
-smoothiefroot_response = requests.get(
-    "https://my.smoothiefroot.com/api/fruit/watermelon"
-)
-
-# Convert API response to JSON
-smoothiefroot_response_json = smoothiefroot_response.json()
-
-# Put JSON into a dataframe
-sf_df = pd.DataFrame([smoothiefroot_response_json])
-
-# Display SmoothieFroot dataframe
-st.dataframe(sf_df)
