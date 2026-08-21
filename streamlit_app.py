@@ -1,6 +1,6 @@
 # Import python packages
 import streamlit as st
-# from snowflake.snowpark.context import get_active_session
+import requests
 from snowflake.snowpark.functions import col
 
 # Write directly to the app
@@ -14,7 +14,7 @@ name_on_order = st.text_input("Name on Smoothie:")
 
 st.write("The name on Smoothie will be", name_on_order)
 
-# session = get_active_session()
+# Connect to Snowflake
 cnx = st.connection("snowflake")
 session = cnx.session()
 
@@ -49,3 +49,12 @@ if ingredients_list:
             'Your Smoothie is ordered!',
             icon="✅"
         )
+
+# Call the SmoothieFroot API
+smoothiefroot_response = requests.get(
+    "https://my.smoothiefroot.com/api/fruit/watermelon"
+)
+
+smoothiefroot_response_json = smoothiefroot_response.json()
+
+st.json(smoothiefroot_response_json)
