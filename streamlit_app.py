@@ -1,10 +1,11 @@
 # Import python packages
 import streamlit as st
 import requests
+import pandas as pd
 from snowflake.snowpark.functions import col
 
 # Write directly to the app
-st.title(f"Customize Your Smoothie!🥤")
+st.title("Customize Your Smoothie!🥤")
 
 st.write(
     """Choose the fruits you want in your custom smoothie!"""
@@ -18,6 +19,7 @@ st.write("The name on Smoothie will be", name_on_order)
 cnx = st.connection("snowflake")
 session = cnx.session()
 
+# Get fruit options from Snowflake
 my_dataframe = session.table(
     "smoothies.public.fruit_options"
 ).select(col("FRUIT_NAME"))
@@ -40,13 +42,13 @@ if ingredients_list:
                     (ingredients, name_on_order)
                     VALUES ('""" + ingredients_string + """', '""" + name_on_order + """')"""
 
-    time_to_insert = st.button('Submit Order')
+    time_to_insert = st.button("Submit Order")
 
     if time_to_insert:
         session.sql(my_insert_stmt).collect()
 
         st.success(
-            'Your Smoothie is ordered!',
+            "Your Smoothie is ordered!",
             icon="✅"
         )
 
@@ -55,6 +57,11 @@ smoothiefroot_response = requests.get(
     "https://my.smoothiefroot.com/api/fruit/watermelon"
 )
 
+# Convert API response to JSON
 smoothiefroot_response_json = smoothiefroot_response.json()
 
-st.json(smoothiefroot_response_json)
+# Put JSON into a dataframe
+sf_df = pd.DataFrame([smoothiefroot_response_json])
+
+# Display SmoothieFroot dataframe
+st.dataframe(sf_df)
