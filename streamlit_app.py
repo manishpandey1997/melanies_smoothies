@@ -48,15 +48,21 @@ if ingredients_list:
 
     for fruit_chosen in ingredients_list:
 
+        # Get the API search value from SEARCH_ON
         search_term = fruit_lookup[fruit_chosen]
 
+        # Call SmoothieFroot API
         smoothiefroot_response = requests.get(
-            "https://my.smoothiefroot.com/api/fruit/" + search_term
+            "https://my.smoothiefroot.com/api/fruit/"
+            + search_term.lower()
         )
 
+        # Only process successful responses
         if smoothiefroot_response.status_code == 200:
 
-            smoothiefroot_response_json = smoothiefroot_response.json()
+            smoothiefroot_response_json = (
+                smoothiefroot_response.json()
+            )
 
             fruit_df = pd.DataFrame(
                 [smoothiefroot_response_json]
@@ -79,7 +85,7 @@ if ingredients_list:
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
 
-    # Insert order
+    # Insert order into Snowflake
     my_insert_stmt = """INSERT INTO SMOOTHIES.PUBLIC.ORDERS
         (INGREDIENTS, NAME_ON_ORDER)
         VALUES ('""" + ingredients_string + """', '""" + name_on_order + """')"""
