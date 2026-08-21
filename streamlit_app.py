@@ -40,11 +40,12 @@ ingredients_list = st.multiselect(
 
 if ingredients_list:
 
+    # Get nutrition data
     sf_df = pd.DataFrame()
 
     for fruit_chosen in ingredients_list:
 
-        # Find the API search value
+        # Find API search value
         search_on = pd_df.loc[
             pd_df["FRUIT_NAME"] == fruit_chosen,
             "SEARCH_ON"
@@ -85,11 +86,8 @@ if ingredients_list:
         use_container_width=True
     )
 
-    # Create ingredients string
-    ingredients_string = ""
-
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + " "
+    # Create ingredients string WITHOUT trailing space
+    ingredients_string = " ".join(ingredients_list)
 
     # Insert order
     my_insert_stmt = """INSERT INTO SMOOTHIES.PUBLIC.ORDERS
