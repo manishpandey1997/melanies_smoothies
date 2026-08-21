@@ -20,44 +20,50 @@ st.write("The name on Smoothie will be", name_on_order)
 cnx = st.connection("snowflake")
 session = cnx.session()
 
-# Get fruit names and API search terms
-fruit_data = session.table(
+# Get fruit names and search values
+my_dataframe = session.table(
     "SMOOTHIES.PUBLIC.FRUIT_OPTIONS"
 ).select(
     col("FRUIT_NAME"),
     col("SEARCH_ON")
-).collect()
+)
 
-# Create lookup dictionary
-fruit_lookup = {
-    row["FRUIT_NAME"]: row["SEARCH_ON"]
-    for row in fruit_data
-}
+# Convert Snowpark dataframe to Pandas dataframe
+pd_df = my_dataframe.to_pandas()
 
-# Choose up to 5 ingredients
+# Multiselect uses the friendly fruit name
 ingredients_list = st.multiselect(
     "Choose upto 5 ingredients:",
-    list(fruit_lookup.keys()),
+    pd_df["FRUIT_NAME"],
     max_selections=5
 )
 
 if ingredients_list:
 
-    # Get nutrition data from SmoothieFroot
     sf_df = pd.DataFrame()
 
     for fruit_chosen in ingredients_list:
 
-        # Get the API search value from SEARCH_ON
-        search_term = fruit_lookup[fruit_chosen]
+        # Find the API search value
+        search_on = pd_df.loc[
+            pd_df["FRUIT_NAME"] == fruit_chosen,
+            "SEARCH_ON"
+        ].iloc[0]
+
+        st.write(
+            "The search value for ",
+            fruit_chosen,
+            " is ",
+            search_on,
+            "."
+        )
 
         # Call SmoothieFroot API
         smoothiefroot_response = requests.get(
             "https://my.smoothiefroot.com/api/fruit/"
-            + search_term.lower()
+            + search_on.lower()
         )
 
-        # Only process successful responses
         if smoothiefroot_response.status_code == 200:
 
             smoothiefroot_response_json = (
@@ -80,12 +86,12 @@ if ingredients_list:
     )
 
     # Create ingredients string
-    ingredients_string = ''
+    ingredients_string = ""
 
     for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + ' '
+        ingredients_string += fruit_chosen + " "
 
-    # Insert order into Snowflake
+    # Insert order
     my_insert_stmt = """INSERT INTO SMOOTHIES.PUBLIC.ORDERS
         (INGREDIENTS, NAME_ON_ORDER)
         VALUES ('""" + ingredients_string + """', '""" + name_on_order + """')"""
