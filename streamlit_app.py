@@ -33,7 +33,7 @@ ingredients_list = st.multiselect(
 
 if ingredients_list:
 
-    # Get SmoothieFroot data for each selected fruit
+    # Get nutrition information for each selected fruit
     sf_df = pd.DataFrame()
 
     for fruit_chosen in ingredients_list:
@@ -51,7 +51,7 @@ if ingredients_list:
             ignore_index=True
         )
 
-    # Display nutrition data
+    # Display nutrition information
     st.dataframe(sf_df, use_container_width=True)
 
     # Create ingredients string
@@ -60,6 +60,7 @@ if ingredients_list:
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
 
+    # Insert order into Snowflake
     my_insert_stmt = """INSERT INTO smoothies.public.orders
                     (ingredients, name_on_order)
                     VALUES ('""" + ingredients_string + """', '""" + name_on_order + """')"""
